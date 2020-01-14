@@ -8,12 +8,13 @@ const cors = require('cors');
 
 app.use(cors());
 
-/////route for Locations///////
-app.get('/locations', (request, response) => {
+/////route for Locations, Geo///////
+app.get('/location', (request, response) => {
   try {
     const geoData = require('./data/geo.json');
     const city = request.query.city;
-    const locationData = new Location(city, geoData);
+    console.log(city);
+    const locationData = new Location(geoData, city);
     response.send(locationData);
   }
   catch (error){
@@ -21,14 +22,12 @@ app.get('/locations', (request, response) => {
   }
 })
 
-
 function Location (geoData, city){
   this.search_query = city;
   this.formatted_query = geoData[0].display_name;
   this.latitude = geoData[0].lat;
   this.longitude = geoData[0].lon;
 }
-
 
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}`));
