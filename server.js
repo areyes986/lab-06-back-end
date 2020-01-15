@@ -26,6 +26,10 @@ app.get('/location', (request, response) => {
 app.get('/weather', (request, response) => {
   try {
     const darkSky = require('./data/darksky.json');
+    // const weatherSum = [];
+    // darkSky.daily.data.forEach(day =>{
+    //   weatherSum.push(new Weather (day));
+    // });
     let darkSkyData = darkSky.daily.data;
     const data = darkSkyData.map (day => {
       return new Weather(day);
