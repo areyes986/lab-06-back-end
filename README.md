@@ -27,7 +27,7 @@ This application uses APIs to provide the user information about the city they h
 <!-- Provide a detailed description of the application design. What technologies (languages, libraries, etc) you're using, and any other relevant design information. -->
 
 ## Change Log
-
+01-15-2020 11:45AM - Application renders the inputed location using the LocationIQ API
 01-14-2020 8:00PM - Application now fully renders the city map and weather information.
 
 <!-- Use this area to document the iterative changes made to your application as each feature is successfully implemented. Use time stamps. Here's an examples:
