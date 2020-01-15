@@ -15,6 +15,7 @@ app.get('/location', (request, response) => {
     const city = request.query.city;
     const key = process.env.LOCATIONIQ_API_KEY;
     const url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
+
     superagent.get(url)
       .then(data => {
         const geoData = data.body[0];
@@ -34,7 +35,7 @@ app.get('/weather', (request, response) => {
     let latitude = request.query.latitude;
     let longitude = request.query.longitude;
     const key = process.env.DARKSKY_API_KEY;
-    const url = `https://api.darksky.net/forecast/${key}/${latitude},${longitude}`
+    const url = `https://api.darksky.net/forecast/${key}/${latitude},${longitude}`;
 
     superagent.get(url)
       .then(data => {
@@ -49,6 +50,16 @@ app.get('/weather', (request, response) => {
     errorHandler('Oops! Sorry, something went wrong', request, response);
   }
 });
+
+////////route for events/////////
+// app.get('/events', (request, response) => {
+//     try {
+
+//         const key = process.env.EVENTFUL_API_KEY;
+//         const url = `http://api.eventful.com/rest/events/search?...&where=$%7Blocation.latitude%7D,$%7Blocation.longitude%7D&within=5%60`
+//     }
+// })
+
 
 
 //////constructor for location/////
@@ -66,6 +77,12 @@ function Weather(day) {
   this.forecast = day.summary;
   this.time = new Date(day.time * 1000).toString().slice(0, 15);
 }
+
+
+
+///////constructor for events////////
+
+// function events()
 
 
 app.use('*', error);
