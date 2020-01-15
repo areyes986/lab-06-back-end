@@ -31,18 +31,25 @@ app.get('/location', (request, response) => {
 //////route for weather, darksky///////
 app.get('/weather', (request, response) => {
   try {
-    const darkSky = require('./data/darksky.json');
-    let darkSkyData = darkSky.daily.data;
-    const data = darkSkyData.map(day => {
-      return new Weather(day);
-    })
-    // console.log(data);
-    response.status(200).send(data);
+    let latitude = request.query.latitude;
+    let longitude = request.query.longitude;
+    const key = process.env.DARKSKY_API_KEY;
+    const url = `https://api.darksky.net/forecast/${key}/${latitude},${longitude}`
+
+    superagent.get(url)
+      .then(data => {
+        let darkSkyData = data.body.daily.data.map(day => {
+          return new Weather(day);
+        })
+        console.log(darkSkyData);
+        response.status(200).send(darkSkyData);
+      });
   }
   catch (error) {
     errorHandler('Oops! Sorry, something went wrong', request, response);
   }
-})
+});
+
 
 //////constructor for location/////
 
