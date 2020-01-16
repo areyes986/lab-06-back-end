@@ -1,25 +1,32 @@
 'use strict';
 
-const express = require('express');
-const app = express();
-require('dotenv').config();
+const express = require('express'); // express is a server
+const app = express(); //
+require('dotenv').config(); // goes into env file and gets the variables
 const PORT = process.env.PORT || 3001
-const cors = require('cors');
-const superagent = require('superagent');
-
+const cors = require('cors'); // allows server to talk to front-end
+const superagent = require('superagent'); // pulls data from APIs
+// const pg = require('pg');
+// const client = new pg.Client(process.env.DATABASE_URL); //server becomes the client, connects to postgres database
+// client.on('error', err => console.error) ///tells you if you are up and running
 app.use(cors());
 
+////// route sql /////////
+
+
+let locationData = {};
+
 /////route for Locations, Geo///////
-app.get('/location', (request, response) => {
+app.get('/location', (request, response) => { // route called location, gave a call back
   try {
-    const city = request.query.city;
+    const city = request.query.city; // resquest is what is sent from front end, query lives in the url,
     const key = process.env.LOCATIONIQ_API_KEY;
     const url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
 
     superagent.get(url)
       .then(data => {
         const geoData = data.body[0];
-        const locationData = new Location(geoData, city)
+        locationData = new Location(geoData, city)
         response.status(200).send(locationData);
       })
   }
@@ -52,14 +59,25 @@ app.get('/weather', (request, response) => {
 });
 
 ////////route for events/////////
-// app.get('/events', (request, response) => {
-//     try {
+app.get('/events', (request, response) => {
+  try {
+    const key = process.env.EVENTFUL_API_KEY;
+    const url = `http://api.eventful.com/json/events/search?keywords=music&location=${locationData.search_query}&app_key=${key}`;
+    console.log(url);
 
-//         const key = process.env.EVENTFUL_API_KEY;
-//         const url = `http://api.eventful.com/rest/events/search?...&where=$%7Blocation.latitude%7D,$%7Blocation.longitude%7D&within=5%60`
-//     }
-// })
-
+    superagent.get(url)
+      .then (data => {
+        let eventData = JSON.parse(data.text);
+        let localEvents = eventData.events.event.map(mapEvent => {
+          return new MoreEvents(mapEvent);
+        });
+        response.status(200).send(localEvents);
+      });
+  }
+  catch (error) {
+    errorHandler('Oops! Sorry, something went wrong', request, response);
+  }
+})
 
 
 //////constructor for location/////
@@ -78,11 +96,15 @@ function Weather(day) {
   this.time = new Date(day.time * 1000).toString().slice(0, 15);
 }
 
-
-
 ///////constructor for events////////
 
-// function events()
+function MoreEvents(mapEvent) {
+  this.link = mapEvent.url;
+  this.name = mapEvent.title;
+  this.summary = mapEvent.description;
+  this.event_date = mapEvent.start_time.slice(0, 10);
+}
+
 
 
 app.use('*', error);
@@ -94,5 +116,9 @@ function error(request, response) {
 function errorHandler(error, request, response) {
   response.status(500).send(error);
 }
+
+// client.connect() //tells us if we are connected or not/ tells us if we are connected or not
+//   .then() // add app.listen in ()
+//   .catch((err) => console.error(err));
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}`));
