@@ -19,27 +19,38 @@ let locationData = {};
 
 /////route for Locations, Geo///////
 app.get('/location', (request, response) => { // route called location, gave a call back
-  try {
-    const city = request.query.city; // resquest is what is sent from front end, query lives in the url,
-    const key = process.env.LOCATIONIQ_API_KEY;
-    const url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
 
-    superagent.get(url)
-      .then(data => {
-        const geoData = data.body[0];
-        locationData = new Location(geoData, city)
+  const city = request.query.city; // resquest is what is sent from front end, query lives in the url,
 
-        let sql = 'INSERT INTO locations (city,display_name,latitude,longitude) VALUES ($1, $2, $3, $4);';
-        let safeValues = [locationData.search_query, locationData.formatted_query, locationData.latitude, locationData.longitude]; // so hackers dont hack thing, sanitizes data. has to be an array
-        client.query(sql, safeValues); 
+  let locationSql = 'SELECT * FROM locations WHERE city=$1';
+  let locationSafeValue = [city];
+  client.query(locationSql, locationSafeValue)
+    .then(results => {
+      if (results.rows.length > 0) {
+          console.log(results);
+        response.status(200).json(results.rows[0])
+      } else {
+        const key = process.env.LOCATIONIQ_API_KEY;
+        const locationUrl = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
 
-        response.status(200).send(locationData);
-      });
-  }
-  catch (error) {
-    errorHandler('So sorry, something went wrong', request, response);
-  }
+        superagent.get(locationUrl)
+          .then(data => {
+            const geoData = data.body[0];
+            locationData = new Location(geoData, city)
+
+            let sql = 'INSERT INTO locations (city,display_name,latitude,longitude) VALUES ($1, $2, $3, $4);';
+            let safeValues = [locationData.search_query, locationData.formatted_query, locationData.latitude, locationData.longitude]; // so hackers dont hack thing, sanitizes data. has to be an array
+            client.query(sql, safeValues);
+
+            response.status(200).send(locationData);
+          })
+          .catch((err) => {
+            errorHandler('Oops! deep location handle error', err);
+          })
+      }
+    })
 });
+
 
 
 //////route for weather, darksky///////
@@ -112,10 +123,10 @@ function MoreEvents(mapEvent) {
 
 
 
-app.use('*', error);
+app.use('*', notFoundError);
 app.use(errorHandler);
 
-function error(request, response) {
+function notFoundError(request, response) {
   response.status(404).send('???');
 }
 function errorHandler(error, request, response) {
