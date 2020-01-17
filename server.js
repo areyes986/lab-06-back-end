@@ -27,7 +27,6 @@ app.get('/location', (request, response) => { // route called location, gave a c
   client.query(locationSql, locationSafeValue)
     .then(results => {
       if (results.rows.length > 0) {
-          console.log(results);
         response.status(200).json(results.rows[0])
       } else {
         const key = process.env.LOCATIONIQ_API_KEY;
@@ -96,6 +95,26 @@ app.get('/events', (request, response) => {
 })
 
 
+////////route for movies////////////
+
+// app.get('/movies', (request, response) => {
+//   try {
+//     const movieURL = `https://api.themoviedb.org/3/movie/550?api_key=${process.eventNames.MOVIEDB_API_KEY}`;
+
+//     superagent.get(movieURL)
+//       .then(data => {
+//         let moviePath = data.body.map(movie => {
+//           return new MovieData(movie);
+//         })
+//         response.status(200).send(moviePath);
+//       });
+//   }
+//   catch (error) {
+//     errorHandler('Oops! Sorry, something went wrong', request, response);
+//   }
+// })
+
+
 //////constructor for location/////
 
 function Location(geoData, city) {
@@ -121,6 +140,13 @@ function MoreEvents(mapEvent) {
   this.event_date = mapEvent.start_time.slice(0, 10);
 }
 
+////////constructor for movies//////////
+// function MovieData(movie){
+//     this.title = movie.original_title;
+//     this.released_on = movie.release_date;
+//     this.image_url =
+//     this.overview =
+// }
 
 
 app.use('*', notFoundError);
