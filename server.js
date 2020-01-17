@@ -6,16 +6,16 @@ require('dotenv').config(); // goes into env file and gets the variables
 const PORT = process.env.PORT || 3001
 const cors = require('cors'); // allows server to talk to front-end
 const superagent = require('superagent'); // pulls data from APIs
-const pg = require('pg');
+
+const pg = require('pg'); //lets us connect to the database
 const client = new pg.Client(process.env.DATABASE_URL); //server becomes the client, connects to postgres database
 client.on('error', err => console.error(err)) ///tells you if you are up and running
-app.use(cors());
 
-////// route sql /////////
+app.use(cors()); // using the func
 
 
 let locationData = {};
-// let weatherData = 
+
 
 /////route for Locations, Geo///////
 app.get('/location', (request, response) => { // route called location, gave a call back
@@ -30,8 +30,8 @@ app.get('/location', (request, response) => { // route called location, gave a c
         locationData = new Location(geoData, city)
 
         let sql = 'INSERT INTO locations (city,display_name,latitude,longitude) VALUES ($1, $2, $3, $4);';
-        let safeValues = [locationData.search_query, locationData.formatted_query, locationData.latitude, locationData.longitude];
-        client.query(sql, safeValues);
+        let safeValues = [locationData.search_query, locationData.formatted_query, locationData.latitude, locationData.longitude]; // so hackers dont hack thing, sanitizes data. has to be an array
+        client.query(sql, safeValues); 
 
         response.status(200).send(locationData);
       });
