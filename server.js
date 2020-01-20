@@ -115,6 +115,28 @@ app.get('/movies', (request, response) => {
   }
 })
 
+/////////////// route for yelp ///////////////
+app.get('/yelp', (request, response) => {
+  try {
+    const city = request.query.city
+    const yelpURL = `https://api.yelp.com/v3/businesses/search?restaurant&location=${city}`;
+
+    superagent.get(yelpURL)
+      .set('Authorization', `Bearer ${process.env.YELP_API_KEY}`)
+      .then(data => {
+        let yelpParse = JSON.parse(data.text)
+        console.log(yelpParse)
+        let yelpPath = yelpParse.businesses.map(yelp => {
+          return new YelpData(yelp);
+        })
+        response.status(200).send(yelpPath);
+      }).catch(error => console.log('this is the error', error))
+  }
+  catch (error) {
+    errorHandler('Oops! Sorry, something went wrong', request, response);
+  }
+})
+
 
 //////constructor for location/////
 
@@ -152,7 +174,14 @@ function MovieData(movie) {
   this.released_on = movie.release_date;
 }
 
-
+/////////constructor for yelp ////////////
+function YelpData(yelp){
+  this.name = yelp.name;
+  this.image_url = yelp.image_url;
+  this.price = yelp.price;
+  this.rating = yelp.rating;
+  this.url = yelp.url;
+}
 
 
 app.use('*', notFoundError);
