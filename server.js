@@ -66,7 +66,7 @@ app.get('/weather', (request, response) => {
           return new Weather(day);
         })
         response.status(200).send(darkSkyData);
-      });
+      }).catch(error => console.log('this is the error', error))
   }
   catch (error) {
     errorHandler('Oops! Sorry, something went wrong', request, response);
@@ -76,9 +76,9 @@ app.get('/weather', (request, response) => {
 ////////route for events/////////
 app.get('/events', (request, response) => {
   try {
+    const city = request.query.city
     const key = process.env.EVENTFUL_API_KEY;
-    const url = `http://api.eventful.com/json/events/search?keywords=music&location=${locationData.search_query}&app_key=${key}`;
-    console.log(url);
+    const url = `http://api.eventful.com/json/events/search?keywords=music&location=${city}&app_key=${key}`;
 
     superagent.get(url)
       .then(data => {
@@ -87,7 +87,7 @@ app.get('/events', (request, response) => {
           return new MoreEvents(mapEvent);
         });
         response.status(200).send(localEvents);
-      });
+      }).catch(error => console.log('this is the error', error))
   }
   catch (error) {
     errorHandler('Oops! Sorry, something went wrong', request, response);
@@ -97,22 +97,23 @@ app.get('/events', (request, response) => {
 
 ////////route for movies////////////
 
-// app.get('/movies', (request, response) => {
-//   try {
-//     const movieURL = `https://api.themoviedb.org/3/movie/550?api_key=${process.eventNames.MOVIEDB_API_KEY}`;
+app.get('/movies', (request, response) => {
+  try {
+    const city = request.query.city
+    const movieURL = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIEDB_API_KEY}&language=en-US&query=${city}`;
 
-//     superagent.get(movieURL)
-//       .then(data => {
-//         let moviePath = data.body.map(movie => {
-//           return new MovieData(movie);
-//         })
-//         response.status(200).send(moviePath);
-//       });
-//   }
-//   catch (error) {
-//     errorHandler('Oops! Sorry, something went wrong', request, response);
-//   }
-// })
+    superagent.get(movieURL)
+      .then(data => {
+        let moviePath = data.body.results.map(movie => {
+          return new MovieData(movie);
+        })
+        response.status(200).send(moviePath);
+      }).catch(error => console.log('this is the error', error))
+  }
+  catch (error) {
+    errorHandler('Oops! Sorry, something went wrong', request, response);
+  }
+})
 
 
 //////constructor for location/////
@@ -140,13 +141,18 @@ function MoreEvents(mapEvent) {
   this.event_date = mapEvent.start_time.slice(0, 10);
 }
 
-////////constructor for movies//////////
-// function MovieData(movie){
-//     this.title = movie.original_title;
-//     this.released_on = movie.release_date;
-//     this.image_url =
-//     this.overview =
-// }
+//////constructor for movies//////////
+function MovieData(movie) {
+  this.title = movie.original_title;
+  this.overview = movie.overview;
+  this.average_votes = movie.vote_average;
+  this.total_votes = movie.vote_count;
+  this.image_url = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+  this.popularity = movie.popularity;
+  this.released_on = movie.release_date;
+}
+
+
 
 
 app.use('*', notFoundError);
